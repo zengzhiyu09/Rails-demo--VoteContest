@@ -1,0 +1,88 @@
+<div class="container mt-4">
+  <!-- 1. 顶部问候语 (Requirement #3) -->
+  <div class="mb-4">
+    <% if user_signed_in? %>
+      <h4>Hello, <%= current_user.email %>!</h4>
+      <p>
+        <%= link_to "Update Phone Number", edit_user_registration_path %> |
+        <%= link_to "Logout", destroy_user_session_path, method: :delete %>
+      </p>
+    <% else %>
+      <h4>Hello, Guest!</h4>
+      <p>
+        <%= link_to "Login", new_user_session_path %> |
+        <%= link_to "Sign Up", new_user_registration_path %>
+      </p>
+    <% end %>
+  </div>
+
+  <hr>
+
+  <!-- 2. 候选人列表 (Requirement #3 & #4) -->
+  <% @candidates.each do |candidate| %>
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row">
+          
+          <!-- 左侧：文字信息 -->
+          <div class="col-md-4">
+            <h5 class="card-title"><%= candidate.name %></h5>
+            <p class="card-text">
+              <!-- 假设 Candidate 模型有 age 和 bio 字段 -->
+              <%= candidate.age || 'Unknown' %><br>
+              <%= candidate.backstory || 'No backstory available.' %>
+            </p>
+            
+            <!-- 投票按钮逻辑 (Requirement #4) -->
+            <div class="mt-3">
+              <% if user_signed_in? %>
+                <!-- 检查是否已经投过票 -->
+                <% voted = candidate.votes.exists?(user: current_user) %>
+                
+                <% if voted %>
+                  <!-- 已投票状态：灰色按钮，不可点 -->
+                  <button class="btn btn-secondary btn-sm" disabled>
+                    VOTED
+                  </button>
+                  <small class="text-muted ms-2">You have voted for this candidate.</small>
+                <% else %>
+                  <!-- 未投票状态：蓝色按钮，可点击 -->
+                  <%= button_to "VOTE FOR #{candidate.name}", votes_path(candidate_id: candidate.id), method: :post, class: "btn btn-primary btn-sm" %>
+                <% end %>
+                
+              <% else %>
+                <!-- 未登录用户提示 -->
+                <%= link_to "Login to Vote", new_user_session_path, class: "btn btn-outline-secondary btn-sm" %>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- 右侧：图片网格 (Requirement #3) -->
+          <div class="col-md-8">
+            <div class="row g-2"> <!-- g-2 增加了一点图片间距 -->
+              <!-- 这里我们生成 12 个占位图 (3列 x 4行) -->
+              <!-- 实际开发中，这里应该是 candidate.photos.each 循环 -->
+              <% 12.times do |i| %>
+                <div class="col-4">
+                  <!-- 使用 picsum.photos 生成随机真实图片 -->
+                  <!-- 加上 ?random=<%= i %> 确保每张图都不一样 -->
+                  <img src="https://picsum.photos/seed/<%= candidate.id + i %>/150/100" 
+                      class="img-fluid rounded" 
+                      alt="Photo"
+                      style="width: 100%; height: 80px; object-fit: cover;">
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- 3. 分页导航 (Requirement #3) -->
+  <div class="d-flex justify-content-center">
+    <%= paginate @candidates %>
+  </div>
+
+</div>
